@@ -1,32 +1,35 @@
-name: Terraform Plan (dev)
+name: terraform-plan-reusable
 
 on:
-  pull_request:
-    paths:
-      - '**/*.tf'
-      - 'envs/dev/**'
-      - '.github/workflows/**'
-
-permissions:
-  id-token: write      # <-- required for OIDC
-  contents: read
-
-env:
-  WORKDIR: envs/dev/ap-southeast-1
+  workflow_call:
+    inputs:
+      workdir:
+        required: true
+        type: string
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
 
 jobs:
   plan:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout pipeline repo
-        uses: actions/checkout@v4
+    permissions:
+      id-token: write
+      contents: read
 
+    env:
+      WORKDIR: ${{ inputs.workdir }}
+
+    steps:
       - name: Checkout infra repo
         uses: actions/checkout@v4
         with:
-          repository: amithcm/eks-infra         # 👈 replace with your org/repo
-          path: eks-infra
+          # The caller repo is the infra repo
+          repository: ${{ github.repository }}
+          path: infra
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -40,13 +43,13 @@ jobs:
           terraform_version: 1.9.5
 
       - name: Terraform Init
-        working-directory: eks-infra/${{ env.WORKDIR }}
+        working-directory: infra/${{ env.WORKDIR }}
         run: terraform init -input=false
 
       - name: Terraform Validate
-        working-directory: eks-infra/${{ env.WORKDIR }}
+        working-directory: infra/${{ env.WORKDIR }}
         run: terraform validate
 
       - name: Terraform Plan
-        working-directory: eks-infra/${{ env.WORKDIR }}
+        working-directory: infra/${{ env.WORKDIR }}
         run: terraform plan -no-color -input=false

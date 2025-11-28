@@ -1,0 +1,9 @@
+# Terraform local state + providers
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# IDE
+.idea/
+.vscode/
