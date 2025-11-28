@@ -31,16 +31,16 @@ jobs:
           repository: ${{ github.repository }}
           path: infra
 
-      - name: Debug GitHub OIDC payload
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const core = require('@actions/core');
-            const token = await core.getIDToken();
-            const payload = token.split('.')[1];
-            const padded = payload + '='.repeat((4 - payload.length % 4) % 4);
-            const decoded = Buffer.from(padded, 'base64').toString('utf8');
-            console.log("OIDC PAYLOAD:", decoded);
+      # - name: Debug GitHub OIDC payload
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       const core = require('@actions/core');
+      #       const token = await core.getIDToken();
+      #       const payload = token.split('.')[1];
+      #       const padded = payload + '='.repeat((4 - payload.length % 4) % 4);
+      #       const decoded = Buffer.from(padded, 'base64').toString('utf8');
+      #       console.log("OIDC PAYLOAD:", decoded);
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
