@@ -31,12 +31,18 @@ jobs:
           repository: ${{ github.repository }}
           path: infra
 
-      - name: Debug OIDC token
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const jwt = await core.getIDToken();
-            console.log(jwt);
+      - name: Decode OIDC token payload
+        shell: bash
+        run: |
+          echo "REQUESTING JWT..."
+          TOKEN=$(curl -sLS -H "Authorization: Bearer $ACTIONS_ID_TOKEN" \
+            "https://token.actions.githubusercontent.com/?audience=sts.amazonaws.com" \
+            | jq -r '.value')
+
+          echo "DECODED PAYLOAD:"
+          PAYLOAD=$(echo "$TOKEN" | cut -d '.' -f2)
+          echo "$PAYLOAD" | base64 --decode | jq .
+
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
