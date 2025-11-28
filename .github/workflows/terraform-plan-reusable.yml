@@ -31,6 +31,13 @@ jobs:
           repository: ${{ github.repository }}
           path: infra
 
+      - name: Debug OIDC token
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jwt = await core.getIDToken();
+            console.log(jwt);
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
