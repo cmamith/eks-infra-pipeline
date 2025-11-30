@@ -1,0 +1,47 @@
+name: terraform-apply-reusable
+
+on:
+  workflow_call:
+    inputs:
+      workdir:
+        required: true
+        type: string
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          path: infra
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Terraform Init
+        working-directory: infra/${{ inputs.workdir }}
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        working-directory: infra/${{ inputs.workdir }}
+        run: terraform apply -auto-approve -input=false
